@@ -1,0 +1,694 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>How to deploy ML model on AWS EC2 server</title><style>
+/* cspell:disable-file */
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.simple-table {
+	margin-top: 1em;
+	font-size: 0.875rem;
+}
+
+.simple-table-header {
+	background: rgb(247, 246, 243);
+	color: black;
+	font-weight: 500;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	max-height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
+.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
+.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
+.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
+.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
+.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
+.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
+.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
+.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
+.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
+.highlight-default {
+	color: rgba(55, 53, 47, 1);
+}
+.highlight-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(145, 145, 142, 1);
+}
+.highlight-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(187, 132, 108, 1);
+}
+.highlight-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(215, 129, 58, 1);
+}
+.highlight-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 148, 51, 1);
+}
+.highlight-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(108, 155, 125, 1);
+}
+.highlight-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(91, 151, 189, 1);
+}
+.highlight-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(167, 130, 195, 1);
+}
+.highlight-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(205, 116, 159, 1);
+}
+.highlight-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(225, 111, 100, 1);
+}
+.highlight-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.highlight-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.highlight-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.highlight-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.highlight-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.highlight-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.highlight-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.highlight-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.highlight-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(120, 119, 116, 1);
+	fill: rgba(145, 145, 142, 1);
+}
+.block-color-brown {
+	color: rgba(159, 107, 83, 1);
+	fill: rgba(187, 132, 108, 1);
+}
+.block-color-orange {
+	color: rgba(217, 115, 13, 1);
+	fill: rgba(215, 129, 58, 1);
+}
+.block-color-yellow {
+	color: rgba(203, 145, 47, 1);
+	fill: rgba(203, 148, 51, 1);
+}
+.block-color-teal {
+	color: rgba(68, 131, 97, 1);
+	fill: rgba(108, 155, 125, 1);
+}
+.block-color-blue {
+	color: rgba(51, 126, 169, 1);
+	fill: rgba(91, 151, 189, 1);
+}
+.block-color-purple {
+	color: rgba(144, 101, 176, 1);
+	fill: rgba(167, 130, 195, 1);
+}
+.block-color-pink {
+	color: rgba(193, 76, 138, 1);
+	fill: rgba(205, 116, 159, 1);
+}
+.block-color-red {
+	color: rgba(212, 76, 71, 1);
+	fill: rgba(225, 111, 100, 1);
+}
+.block-color-gray_background {
+	background: rgba(241, 241, 239, 1);
+}
+.block-color-brown_background {
+	background: rgba(244, 238, 238, 1);
+}
+.block-color-orange_background {
+	background: rgba(251, 236, 221, 1);
+}
+.block-color-yellow_background {
+	background: rgba(251, 243, 219, 1);
+}
+.block-color-teal_background {
+	background: rgba(237, 243, 236, 1);
+}
+.block-color-blue_background {
+	background: rgba(231, 243, 248, 1);
+}
+.block-color-purple_background {
+	background: rgba(244, 240, 247, 0.8);
+}
+.block-color-pink_background {
+	background: rgba(249, 238, 243, 0.8);
+}
+.block-color-red_background {
+	background: rgba(253, 235, 236, 1);
+}
+.select-value-color-pink { background-color: rgba(245, 224, 233, 1); }
+.select-value-color-purple { background-color: rgba(232, 222, 238, 1); }
+.select-value-color-green { background-color: rgba(219, 237, 219, 1); }
+.select-value-color-gray { background-color: rgba(227, 226, 224, 1); }
+.select-value-color-opaquegray { background-color: rgba(255, 255, 255, 0.0375); }
+.select-value-color-orange { background-color: rgba(250, 222, 201, 1); }
+.select-value-color-brown { background-color: rgba(238, 224, 218, 1); }
+.select-value-color-red { background-color: rgba(255, 226, 221, 1); }
+.select-value-color-yellow { background-color: rgba(253, 236, 200, 1); }
+.select-value-color-blue { background-color: rgba(211, 229, 239, 1); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="207d7b4c-3ba8-4e9a-8ab7-94c91a576db7" class="page sans"><header><h1 class="page-title">How to deploy ML model on AWS EC2 server</h1><table class="properties"><tbody><tr class="property-row property-row-created_time"><th><span class="icon property-icon"><svg viewBox="0 0 14 14" style="width:14px;height:14px;display:block;fill:rgba(55, 53, 47, 0.4);flex-shrink:0;-webkit-backface-visibility:hidden" class="typesCreatedAt"><path d="M6.98643729,14.0000972 C5.19579566,14.0000972 3.40419152,13.3106896 2.04245843,11.9323606 C-0.681017475,9.21200555 -0.680780251,4.76029539 2.04293482,2.04012507 C4.76664406,-0.68004331 9.22427509,-0.68004331 11.9480135,2.04013479 C13.272481,3.36277455 14,5.1330091 14,6.99552762 C14,8.87640182 13.2721894,10.6285043 11.9480135,11.9509302 C10.5679344,13.3105924 8.77756503,14.0000972 6.98643729,14.0000972 Z M10.2705296,7.00913883 L10.2705296,8.46099754 L10.2705296,8.65543362 L10.076181,8.65543362 L8.6543739,8.65543362 L5.72059514,8.65543362 L5.52619796,8.65543362 L5.52619796,8.46099754 L5.52619796,5.52541044 L5.52619796,3.37946773 L5.52619796,3.18502193 L5.72059514,3.18502193 L7.17253164,3.18502193 L7.36692883,3.18502193 L7.36692883,3.37946773 L7.36692883,6.81467358 L10.076181,6.81467358 L10.2705296,6.81467358 L10.2705296,7.00913883 Z M12.1601539,6.99552762 C12.1601539,5.61697497 11.6190112,4.32597154 10.6393933,3.34769528 C8.63253764,1.34336744 5.35197452,1.34061603 3.34153136,3.33944106 C3.33868273,3.34219247 3.33607716,3.34494388 3.33322852,3.34769528 C1.32397148,5.35459953 1.32372842,8.63641682 3.33322852,10.6433794 C5.34295224,12.6504489 8.62968901,12.6504489 10.6393933,10.6433794 C11.6190112,9.66506426 12.1601539,8.37408027 12.1601539,6.99552762 Z"></path></svg></span>Created</th><td><time>@January 4, 2022 11:07 PM</time></td></tr><tr class="property-row property-row-multi_select"><th><span class="icon property-icon"><svg viewBox="0 0 14 14" style="width:14px;height:14px;display:block;fill:rgba(55, 53, 47, 0.4);flex-shrink:0;-webkit-backface-visibility:hidden" class="typesMultipleSelect"><path d="M4,3 C4,2.447715 4.447715,2 5,2 L12,2 C12.5523,2 13,2.447716 13,3 C13,3.55228 12.5523,4 12,4 L5,4 C4.447715,4 4,3.55228 4,3 Z M4,7 C4,6.447715 4.447715,6 5,6 L12,6 C12.5523,6 13,6.447716 13,7 C13,7.55228 12.5523,8 12,8 L5,8 C4.447715,8 4,7.55228 4,7 Z M4,11 C4,10.447715 4.447715,10 5,10 L12,10 C12.5523,10 13,10.447716 13,11 C13,11.55228 12.5523,12 12,12 L5,12 C4.447715,12 4,11.55228 4,11 Z M2,4 C1.44771525,4 1,3.55228475 1,3 C1,2.44771525 1.44771525,2 2,2 C2.55228475,2 3,2.44771525 3,3 C3,3.55228475 2.55228475,4 2,4 Z M2,8 C1.44771525,8 1,7.55228475 1,7 C1,6.44771525 1.44771525,6 2,6 C2.55228475,6 3,6.44771525 3,7 C3,7.55228475 2.55228475,8 2,8 Z M2,12 C1.44771525,12 1,11.5522847 1,11 C1,10.4477153 1.44771525,10 2,10 C2.55228475,10 3,10.4477153 3,11 C3,11.5522847 2.55228475,12 2,12 Z"></path></svg></span>Tags</th><td></td></tr><tr class="property-row property-row-created_by"><th><span class="icon property-icon"><svg viewBox="0 0 14 14" style="width:14px;height:14px;display:block;fill:rgba(55, 53, 47, 0.4);flex-shrink:0;-webkit-backface-visibility:hidden" class="typesCreatedBy"><path d="M13.125,10.0354 C12.5536,9.48588 10.801,8.53125 9.625,7.875 L9.625,7.04112 C9.849,6.71912 10.045,6.37 10.1911,5.98588 C10.5849,5.7435 10.9375,5.28412 10.9375,4.8125 C10.9375,4.35488 10.9323,3.94275 10.4668,3.605 C10.3049,1.5575 9.436,0 7,0 C4.564,0 3.69513,1.5575 3.53325,3.605 C3.06775,3.94275 3.0625,4.35488 3.0625,4.8125 C3.0625,5.28412 3.41513,5.7435 3.80888,5.98588 C3.955,6.37 4.151,6.71912 4.375,7.04112 L4.375,7.875 C3.199,8.53125 1.44638,9.48588 0.875,10.0354 C0.1645,10.7188 0,11.8125 0,14 L14,14 C14,11.8125 13.8364,10.7188 13.125,10.0354 Z"></path></svg></span>Created by</th><td></td></tr></tbody></table></header><div class="page-body"><h2 id="09b4df91-6fbf-47af-b938-991c76f12459" class="">First we have to sign up for AWS free tier account - </h2><ul id="1b344d70-247c-43cb-99ba-6dca9fa0e193" class="bulleted-list"><li style="list-style-type:disc">Go to <a href="https://aws.amazon.com/free">https://aws.amazon.com/free</a> </li></ul><ul id="bef61c68-b196-4bda-94e0-044cd7f27e75" class="bulleted-list"><li style="list-style-type:disc">Click on <strong>Create an account</strong> and follow the instruction.</li></ul><ul id="65176f6e-10f7-4c13-99ca-67dd3d099751" class="bulleted-list"><li style="list-style-type:disc">Or watch this video for step by step guide on creating account - </li></ul><figure id="9bcf5b36-0478-4a84-820f-0841bc3e4f69"><a href="https://youtu.be/Gb30daEnYsk" class="bookmark source"><div class="bookmark-info"><div class="bookmark-text"><div class="bookmark-title">AWS DevOps Series: How To Create AWS Free Tier Account || IN 5 Minutes</div><div class="bookmark-description">In this video, I am going to demonstrate that how to create your first AWS free tier account step by step. Also, I have mentioned some of the important point...</div></div><div class="bookmark-href"><img src="https://www.youtube.com/s/desktop/f4861452/img/favicon.ico" class="icon bookmark-icon"/>https://youtu.be/Gb30daEnYsk</div></div><img src="https://i.ytimg.com/vi/Gb30daEnYsk/hqdefault.jpg" class="bookmark-image"/></a></figure><p id="d7950597-f344-44f1-aa85-d649ce6b43cf" class="">
+</p><h2 id="57b970e7-c4a1-4bdc-aef7-e3fdce0fba5a" class="">Create and launch an EC2 server -</h2><p id="3c173191-73be-4351-8bf0-3aa8a86c567d" class=""><em>Amazon EC2 provides us a virtual server running on cloud. We can install an operating system on EC2 server to create a virtual machine on cloud, these virtual machines are called EC2 instance. We will use an ec2 instance to deploy and run our Machine Learning model.</em></p><p id="a8958dd1-0a85-4f43-be57-219fd903066e" class="">
+</p><p id="7acc93f7-6256-40bd-899f-78d413a3c385" class="">After the sign up is complete go to the search bar and type <em>ec2.</em></p><figure id="664ffa96-7dc8-4709-9f97-2c3980d468b8" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/ec2-01.png"><img style="width:1458px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/ec2-01.png"/></a></figure><p id="af52a5c6-2298-4c8b-aea5-405a383e7cb4" class="">Select <strong>EC2</strong> from search results.</p><p id="4b1b512f-82be-4426-b447-36acb8b87999" class="">
+</p><figure id="5fa75089-aa87-4a5a-9341-7b86fe4f3107" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/launch-instance.png"><img style="width:875px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/launch-instance.png"/></a></figure><p id="959d12e2-b182-4a96-a58e-ae557de1d2aa" class="">Click on <strong>Launch instance</strong></p><p id="0bafef39-3671-454e-9e52-244af1fb26b9" class="">
+</p><ul id="988ba9ad-c295-4d96-bd5f-2eca49775177" class="bulleted-list"><li style="list-style-type:disc">Now we will setup our EC2 instance in 7 steps.</li></ul><h3 id="344c2c8e-1569-48e8-8244-4b3b66c096bb" class="">Step 1 </h3><figure id="e5bcb433-65b5-483f-aa72-be58e6287045" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/choose-machine.png"><img style="width:1871px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/choose-machine.png"/></a></figure><p id="99f8ca28-f01e-47a9-a5f1-f6d29ef8066b" class="">Type <strong>ubuntu </strong>in search bar then select <strong>Ubuntu Server 18.04</strong></p><p id="f728c35a-4b25-4551-9999-d0dd9cabe15b" class="">
+</p><h3 id="1f8ee5c2-dab8-41c3-a3ff-ccfdb877f89a" class="">Step 2 </h3><figure id="147b156c-44e7-4ea5-99d1-92a7cd387e57" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/choose-type.png"><img style="width:2549px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/choose-type.png"/></a></figure><p id="c9ab35c6-a912-4065-969c-714f205c4238" class="">On this page <strong>t2.micro</strong> (free tier eligible) should be selected by default. Don&#x27;t change anything on this page. Click on <strong>Next.</strong></p><h3 id="4ca46a58-05f9-4e69-b162-cb419d29be37" class="">Step 3 </h3><p id="db4512e8-d623-46de-ade2-477a269d6298" class="">We don&#x27;t have to change anything on step 3. Click on next.</p><h3 id="94cc6533-4047-48c6-979a-4b8f435487b2" class="">Step 4</h3><p id="df6ea647-95ff-4887-b8cd-dd11e5cdb8f9" class="">In this step we select how much disk storage our server will have. By default it is set to <em>8GB </em>which is sufficient for us. So don&#x27;t change anything on this page. Click next.</p><p id="37bb4b4c-07f7-43d3-9080-caaedbfd8be9" class="">
+</p><h3 id="84d79169-b1c7-4c53-a062-6072dded1f9c" class="">Step 5</h3><figure id="0215b62b-9644-4ad0-867e-7b87f5aca49a" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/add-tag.png"><img style="width:480px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/add-tag.png"/></a></figure><p id="a3a8d163-ef6d-4ef4-9def-d7e720ce06e8" class="">Click on <strong>Add Tag </strong>button. Then type “<strong>Name” </strong>in <em>key</em> section and “<strong>webserver-1”</strong> in <em>value </em>section (webserver-1 will be the name of your ec2 instance. You can write any other name if you want).</p><p id="06df4c2c-128f-48b1-b0c2-c2e620168547" class="">Click <strong>Next</strong>.</p><p id="3d08432d-e906-4849-b59c-bf9b34d73513" class="">
+</p><h3 id="0d958dbb-d659-4974-96f0-827027972031" class="">Step 6</h3><p id="90abd09d-d683-4e94-9ae5-c682526538e4" class="">Click on <strong>Add Rule</strong> button. A new row will be created in rules.</p><figure id="da0f13c4-290d-41d5-9e63-58540595dbea" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/add-rule.png"><img style="width:1258px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/add-rule.png"/></a></figure><p id="c015e902-8375-4458-9664-b62c94b2de24" class="">In T<em>ype </em>select &#x27;All traffic&#x27; and in <em>Source</em> select &#x27;Anywhere&#x27;<em> . </em>Now click on <strong>Review and Launch.</strong></p><p id="1f39a3fd-8bef-49bb-8755-c05e524e1f65" class="">
+</p><h3 id="6621b4b7-a194-4617-b3d5-0cff02e547ec" class="">Step 7</h3><p id="69fc5299-5469-4d91-bc31-72f9e5b95ea3" class="">On this page we can review our instance details. Don&#x27;t change anything, click on <strong>Launch</strong>.</p><p id="fd8f219c-6432-4111-a1ae-1a4667d65e02" class="">
+</p><p id="9543d609-fdcb-4252-b5bb-7fb845818358" class="">After we click on Launch following page will come.</p><p id="4d4c4cae-b5f0-4471-a22f-b368344dd20f" class="">On this page we will create a <em>private key file,</em> which will be used to verify login from pc to server.</p><figure id="88993c2d-51e8-4104-9333-34a331fce178" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/set-passkey.png"><img style="width:899px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/set-passkey.png"/></a></figure><p id="a54a1e5b-1aa3-4437-a0cc-16c7aab15d4e" class="">Select <strong>Create a new key pair</strong> on first option. Then it will ask a name for private key file. Write <strong>webserver-passkey</strong> in that field and click on Download. Save the downloaded file at a good location as we will use this to login in further steps. Click on Launch Instance.</p><p id="424b72a0-d03e-497f-aca2-d9518619303f" class="">
+</p><p id="6c38f0a1-934f-4a81-acaa-64de74c832fc" class="">Now the setup is complete and our instance is launching. On the next page scroll to the bottom left and click on <strong>View instance</strong>.</p><p id="b790aa50-48e4-4184-a3b9-e508acc91ef9" class="">
+</p><p id="63c64d37-69ce-4e81-a916-2030650c249c" class="">Here you can see all EC2 instances in your AWS account.</p><figure id="f05902e9-6e47-4287-9ee3-7d778f5caa7e" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/instance-id.png"><img style="width:1019px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/instance-id.png"/></a></figure><p id="1684b6d0-49c4-43ae-924c-367004546404" class="">Pay attention to the <em>Instance state</em> column, it shows us the current state of every instances (virtual servers). If your instance state is <em>Pending </em>that means it is still launching. It might take some time to launch. When the instance state is <em>Running, </em>our instance is launched and ready to connect.</p><h2 id="8d811477-d399-4542-aa3e-605a23edbfd0" class="">Now we will install some tools to manage EC2 server from our pc -</h2><ul id="7f9fac9a-47ce-46bb-9d9e-96e81ecfd633" class="bulleted-list"><li style="list-style-type:disc">PuTTY - It is a terminal / console which will be used to run commands on our server.<p id="ac168559-dcee-4b90-a5d1-6020f8fb7d05" class="">Download and install putty from this link - </p><p id="0eac918b-6c28-487a-9b13-147d4c8fc9bc" class=""><a href="https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.76-installer.msi">https://the.earth.li/~sgtatham/putty/latest/w64/putty-64bit-0.76-installer.msi</a></p></li></ul><ul id="4f8ac781-5dd3-4f8a-ba53-05867a273f56" class="bulleted-list"><li style="list-style-type:disc">WinSCP - It is a file transfer tool. We will use this to upload files from our pc to EC2 server.<p id="1d77a0dc-e782-4759-b66f-ac00ed484b04" class="">Download and install winscp -</p><p id="656f6c70-24f0-4a18-9a9d-80487792c655" class=""><a href="https://winscp.net/download/files/2022010418179a0b9943ae09e83e1ae445837d5133d4/WinSCP-5.19.5-Setup.exe">https://winscp.net/download/files/2022010418179a0b9943ae09e83e1ae445837d5133d4/WinSCP-5.19.5-Setup.exe</a></p></li></ul><p id="7db34dd9-7072-44c4-842a-a7ccd8d33796" class="">
+</p><h2 id="61ac9fe6-6feb-4cd7-ac74-79c65c5d5d1b" class="">Now we will connect our pc to EC2 server using Winscp and Putty -</h2><p id="66e421ad-4ae6-4e72-a2ca-4c9179810638" class="">Now from instances select (checkbox) webserver-1 and click on <strong>Connect</strong>.</p><figure id="728481ae-76ef-469d-9e40-93d427e15a79" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/select-webserver.png"><img style="width:1265px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/select-webserver.png"/></a></figure><p id="6affe5ca-9920-4db8-8718-4ccc6eebe8eb" class="">
+</p><p id="71d99534-bc92-468e-ac5c-9b22505bffd9" class="">Now on this page click on <strong>SSH client </strong>and copy <strong>Public DNS.</strong></p><figure id="a41209c1-8cbc-4a85-b741-eb7f08445da0" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/connect-instance.png"><img style="width:968px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/connect-instance.png"/></a></figure><p id="dd7dfc9d-1304-4c4f-a455-ff2d79e1d211" class="">This public dns is <em>public address</em> of your ec2 instance. We can use this address to access our ec2 instance from anywhere.</p><p id="01b72994-69bb-447e-a72f-084d5686d6b7" class="">
+</p><p id="8555aebb-a7b9-4f2b-9206-6372a1bf7cf2" class="">Now open winscp in your pc. This scrren will open -</p><figure id="15be6bbe-4a30-4302-8604-cb481f40e1d6" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/winscp.png"><img style="width:1318px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/winscp.png"/></a></figure><ul id="4edc02a8-1a3d-4b59-870b-746d71b8a107" class="bulleted-list"><li style="list-style-type:disc">In <strong>Host Name</strong> paste the public dns copied in previous step.</li></ul><ul id="0cc79784-d15c-4ba5-9c7b-9ab7aa039ae8" class="bulleted-list"><li style="list-style-type:disc">In <strong>User name</strong> we will paste the username of our instance. You can check the user name by going to <strong>EC2 Instance Connect. </strong>Most probably your username should be “ubuntu”.</li></ul><figure id="22a2aba0-d154-40c3-9605-f6d5c3369c23" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/username.png"><img style="width:1014px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/username.png"/></a></figure><p id="0d702879-84ed-48f4-9730-4a66f6a21244" class="">
+</p><p id="0af33739-6c0b-446b-bcd6-acae390824a0" class="">
+</p><ul id="213316e7-56bd-4282-afbe-c53b7269c857" class="bulleted-list"><li style="list-style-type:disc">We don’t have to enter anything in password field. Click on <strong>Advanced </strong>button below the password box.<p id="d9b16e02-b43e-458c-aa83-d9edb08f66e0" class="">In left panel click on authentication then click on three dots as shown in image -</p></li></ul><figure id="92514cbd-f92e-4b51-9c2c-adb5871226b4" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/select-key.png"><img style="width:1103px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/select-key.png"/></a></figure><p id="4822ec18-2a58-48af-9453-c90f189e664f" class="">An explorer window will open. Go to the folder where you had downloaded the private key while setting up instance.</p><p id="39961c65-7990-481a-91fe-893b7f3dadc4" class="">Click on filetypes and select All files.</p><figure id="db1cf753-0324-42ae-b771-abd05b1add4a" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/change-filetype.png"><img style="width:1193px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/change-filetype.png"/></a></figure><p id="84e825ff-cabd-4116-b5f1-be2598411e3d" class="">
+</p><p id="2cd46c39-d8ba-4121-bd58-87678b5b394d" class="">Now it will show the private key. Select it and click <strong>Open.</strong></p><figure id="93194a51-0953-4505-a543-f5044926dcda" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/select-pem.png"><img style="width:1221px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/select-pem.png"/></a></figure><p id="62a058e2-fb63-4a69-874a-9f8349905709" class="">
+</p><p id="3e844089-6f1c-4ac1-a186-40dd6db22a8b" class="">Our downloaded private key is in .pem extension and winscp supports .ppk extension so it will ask to convert .pem to .ppk, click okay.</p><p id="9a5a8515-0a31-4f2f-9843-a788e6ec4ce2" class="">Now our .pem file has been converted to .ppk and winscp will ask to save it somewhere. Click on save. (Save this file at a safe place because it will be required by winscp everytime you login.)</p><p id="80335828-7b7c-44e0-9f32-74b4e93089db" class="">
+</p><p id="1de8e740-c796-4b09-9690-1a5dc6693371" class="">After you save the key will be selected and it will show as it is showing in the image below. Now click on <strong>OK.</strong></p><figure id="65b9c85d-0aa2-4504-a5be-195bbddd43df" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/ppk-selected.png"><img style="width:880px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/ppk-selected.png"/></a></figure><p id="2113b341-8e5e-442c-9827-599f3a38ba9e" class="">
+</p><p id="0b702667-215c-4f19-92d2-3bd8eada788e" class="">Now on the next screen click on <strong>Login </strong>button<strong>.  </strong>Winscp will start connecting to the server.</p><p id="92882ebb-b264-4b43-800a-8304a401746a" class="">If it asks for any permission allow it by clicking <strong>yes.</strong></p><p id="8d353521-03b8-4c08-97a5-243ac6d187d0" class="">
+</p><p id="d38384fd-c468-4c4d-b97a-eb967e9d892a" class="">After winscp finishes connecting it will show following window -</p><figure id="573d7139-ce38-41bd-98c1-2e36a9ba6b30" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/winscpconnected.png"><img style="width:1343px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/winscpconnected.png"/></a></figure><p id="4477c66e-de90-4266-8da0-7ee2c9c00105" class="">On the left side it shows folders in our pc and on the right side it shows files and folders stored on our ubuntu server. It’s blank because we have not uploaded anything yet. </p><p id="1bfb3157-cab6-4f98-a95f-0767ed397208" class="">As you can see in above image I’ve my ML project folder open on right side. You have to open your own project folder.</p><p id="fd6cdef3-f866-4a6b-9c2a-4cb3492e6c5b" class="">Now We have to transfer our project files on ubuntu server which is pretty simple. Just drag and drop files from left to right or right click on a file and select upload. It will ask for confirmation, click Ok/Yes. </p><p id="579d8d3c-8519-4f7f-baab-ceffb3bf35b0" class="">
+</p><p id="b5444057-fffe-476d-ab0f-9dcc08164ef2" class="">We have uploaded all <em>required files </em>ubuntu server.</p><figure id="b416a3db-3f44-4ce0-be1d-89e649b74610" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/files-transfered.png"><img style="width:1349px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/files-transfered.png"/></a></figure><p id="6684c93f-ea9a-4479-bec4-5e86c99de1cc" class="">*The required files to deploy our models are -</p><ul id="53956c83-c1b9-404d-9946-79a1bf779e4f" class="bulleted-list"><li style="list-style-type:disc">app.py - This is the flask script that connects our ML model to HTML websites and handles input and output of data.</li></ul><ul id="ca76d755-ce2c-4947-b0f6-f965b9babff1" class="bulleted-list"><li style="list-style-type:disc">index.html - This is the HTML website which will be used to take user input and display result generated by ML model. We have put <em>index.html </em>file in a folder named <em>templates </em>(as you can see in above image).</li></ul><ul id="6574fbca-abfb-4b8d-bab6-ca4a1de36bca" class="bulleted-list"><li style="list-style-type:disc">model.pkl - This is the .pkl file of our ML model. It is generated by <em>pickle.</em><p id="9c9d934a-b2d7-4c43-af8b-8e3c75b9b553" class=""><em>If you don’t know how to create flask script, html website or pkl file, refer to this video -</em><div class="indented"><p id="ce258877-786d-4b80-920b-aaf78c089ada" class=""><a href="https://youtu.be/_rwNTY5Mn40">https://youtu.be/_rwNTY5Mn40</a></p></div></p></li></ul><ul id="47da5267-e2b4-49dc-a2f2-9761863729fa" class="bulleted-list"><li style="list-style-type:disc">requirments.txt - This is a simple text file in which we have written all the required libraries needed to run our ML model. </li></ul><p id="793d3d5d-b847-4c9b-95cd-9d9e36290d80" class="">Create a text file, rename it to <em>requirements</em> and type all libraries like this -</p><figure id="593d25ee-3ffb-40ac-8b4d-a8e8c76626ee" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/requirements.png"><img style="width:877px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/requirements.png"/></a></figure><p id="bdc503e7-58d4-4f7b-b640-5c0ff54fbb38" class="">My model only requires above mentioned libraries to run. You have to add libraries according to your project’s requirement.</p><p id="2c76ca8c-5dab-49ff-872b-1f46fc9e27a7" class="">
+</p><p id="1db5ab13-9f06-417c-a819-d111cebdbe2d" class=""><strong>Other than these four files if your project needs some more files to run, you have to upload those on server as well.</strong></p><p id="423f071a-c3f5-459d-877f-a97061613576" class="">
+</p><h3 id="fe3932bf-52d6-424d-be57-fcbf0efcb7d3" class="">Now we will open a console and use it install programs on ubuntu server -</h3><p id="182d9fbb-a610-4203-85e2-d2d67bc57814" class="">
+</p><figure id="402b96c8-ba92-4387-bcc6-f12e96d5ac78" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/open_putty.png"><img style="width:1353px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/open_putty.png"/></a></figure><p id="34ec5d66-9628-4449-a3a8-f9d9ba781803" class="">Click on this circled button, it will open Putty console on server.</p><p id="cfcc7795-cea5-4669-bd67-bd815968ac3b" class="">
+</p><figure id="b4718fe0-595c-4db4-9f0a-859303a9b049" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/putty-console.png"><img style="width:815px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/putty-console.png"/></a></figure><p id="d371bc3d-15f6-4ce0-961e-2b8a210503e6" class="">This is a console running on our ubuntu server (EC2 instance).  Keep in mind that it is a linux based console so only linux commands will work on it.</p><p id="04ee3c01-bcb2-41fd-ae77-c11be4683a4d" class="">
+</p><p id="159a7472-cc95-4e72-b402-d4085efb14e2" class="">Now we will run some commands to install python and other required libraries.</p><ul id="abac7811-0499-4613-9ae4-b02842a8381a" class="bulleted-list"><li style="list-style-type:disc">To install Python 3 type this command in console and press enter -</li></ul><pre id="caf94bde-9252-486f-8321-be44355ac02d" class="code"><code>sudo apt install python3</code></pre><ul id="8facd2fb-5120-49f6-963e-aa7a64f3f94f" class="bulleted-list"><li style="list-style-type:disc">Now we will install pip, type this in console and press enter-</li></ul><pre id="97c1f4c6-7bd3-4e72-8c27-62c3cc1cce8b" class="code"><code>sudo apt-get update &amp;&amp; sudo apt-get install python3-pip</code></pre><p id="85cc7a9a-2a37-42b4-b677-9639c2027713" class="">It will ask if you want to continue, type <strong>y </strong>and press enter.</p><p id="f3096541-866e-4cbd-877e-268a497dcac4" class="">
+</p><ul id="8f2b1f34-9a03-4d5e-857d-6aadbfc721f5" class="bulleted-list"><li style="list-style-type:disc">Now we will use the <em>requirement.txt </em>file to install all libraries with just one command. Type this command and press enter -</li></ul><pre id="2272347c-7ef4-469c-91ae-e83c88ac4348" class="code"><code>pip3 install -r requirements.txt</code></pre><p id="58aa8055-bd79-47af-9dba-eb27ca5ddb8a" class="">It will install all libraries and tools that you have written in <em>requirements.txt </em>file.</p><p id="fce57d6d-9c55-4cb7-afa1-49a470ee8091" class="">
+</p><h3 id="589c8467-3ede-46fe-b808-03d7dc57d5aa" class="">Now that all required files are installed we are ready to run our ML model on ubuntu server -</h3><p id="a70b65c0-3c25-4775-b725-f05322074faf" class=""> Type this command and press enter - </p><pre id="39285524-2104-411e-8caa-187d53e09b31" class="code"><code>python3 app.py</code></pre><p id="7af1cca3-b537-4228-88d0-55a5d40d6be6" class="">It will execute the app.py file that we have uploaded on ubuntu server.</p><p id="c30465eb-822a-45ce-9d9e-ac2b5c88e86e" class="">
+</p><figure id="178a741d-4e91-4b30-bb7b-0a19dad18146" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/app-running.png"><img style="width:808px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/app-running.png"/></a></figure><p id="6f9c0a30-2549-4652-9d4c-6569418672d4" class="">You will see a screen like this. Notice the last line in console, it means our application is running on ubuntu server.</p><p id="501fe11a-7e85-4b4f-996e-374d4644be6a" class="">
+</p><p id="76e5e136-dbc2-4934-92b3-e17535066bbd" class="">Now go back to AWS and copy the <em>Public DNS </em>address. This address will be used to connect to your app as long as it is running in console.</p><figure id="653c9ade-f185-4575-b52e-9dca6d86965f" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/copy-publicaddress.png"><img style="width:1028px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/copy-publicaddress.png"/></a></figure><p id="d182ae2e-531e-447f-9237-9e017f129604" class="">
+</p><p id="239bff5a-83db-4aad-aa78-a8624b2c4afb" class="">Paste that address in your browser’s address bar and type “<em><strong>:8080”  </strong></em>in the end (as I’ve done in below image). Now press enter.</p><figure id="c9206f2d-d785-49d3-bbd2-5981aa9f6970" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/browser.png"><img style="width:687px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/browser.png"/></a></figure><p id="7be402ae-c654-4d42-8ab5-fbed141bfec0" class="">
+</p><p id="0ad52d97-aa72-4c33-93b7-3e23f02d3c90" class="">Our website is successfully loaded now.</p><figure id="5e396899-93f9-448b-846e-f6042014723e" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/website.png"><img style="width:1916px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/website.png"/></a></figure><p id="8e4bddc8-0ab5-46c9-8aaf-9902c5475a9a" class="">This website is connected to our ML model through the flask app. We can enter data on this website to test and demonstrate our ML model.</p><p id="04c7926e-8647-4b58-a1bd-7c8696bf494c" class="">
+</p><p id="22448774-d3d7-4fe4-95ce-71fa6cc55dfc" class="">After you have finished testing your model. Go back to EC2 instances page, select your instance, click in <strong>Instance State</strong> (as shown in image). Now click on <strong>Stop Instance</strong> to stop your server.</p><figure id="89f54dd9-4817-49c3-bb09-89274bf81e68" class="image"><a href="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/close-ec2.png"><img style="width:1543px" src="How%20to%20deploy%20ML%20model%20on%20AWS%20EC2%20server%20664ffa967dc847099f972c3980d468b8/close-ec2.png"/></a></figure><p id="2f3c2b3a-d01c-4925-9d1b-613e946710c7" class="">
+</p><p id="d87e1c9c-7076-4c5c-877a-1d538bf2d5d8" class="">
+</p><ul id="9dd93367-1ccd-4040-b66e-15434a5db344" class="bulleted-list"><li style="list-style-type:disc">When you want to test your model again just select your instance and start it. Then follow the steps from ‘connecting our pc to ec2 instance using winscp’ till last.</li></ul><p id="ff4a3b5c-194d-4221-b7ba-a1ea4d0c6c5c" class="">
+</p></div></article></body></html>
